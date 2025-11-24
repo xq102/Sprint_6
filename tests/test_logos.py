@@ -1,6 +1,8 @@
 import allure
 import pytest
 from pages.scooter_main_page import ScooterMainPage
+from pages.urls import YANDEX_DZEN_URL
+
 
 @allure.feature("Логотипы")
 class TestLogos:
@@ -14,25 +16,23 @@ class TestLogos:
             main_page.open()
 
         with allure.step("Получить начальное количество окон"):
-            initial_window_handles = set(driver.window_handles)
+            initial_window_handles = main_page.get_window_handles()
             initial_window_count = len(initial_window_handles)
 
         with allure.step("Кликнуть по логотипу Яндекса"):
             main_page.click_yandex_logo()
 
         with allure.step("Дождаться открытия нового окна"):
-            from selenium.webdriver.support.ui import WebDriverWait
-            wait = WebDriverWait(driver, 5)
-            wait.until(lambda d: len(d.window_handles) > initial_window_count)
+            new_window_opened = main_page.wait_for_new_window(initial_window_handles, timeout=5)
+            assert new_window_opened, "Новое окно не открылось в течение ожидаемого времени"
 
         with allure.step("Найти дескриптор нового окна"):
-            all_window_handles = set(driver.window_handles)
+            all_window_handles = main_page.get_window_handles()
             new_window_handle = list(all_window_handles - initial_window_handles)[0]
 
         with allure.step("Переключиться на новое окно"):
-            driver.switch_to.window(new_window_handle)
+            main_page.switch_to_window(new_window_handle)
 
-        with allure.step("Дождаться, что URL нового окна - Яндекс.Дзен"):
-            from selenium.webdriver.support import expected_conditions as EC
-            wait = WebDriverWait(driver, 5)
-            wait.until(EC.url_to_be("https://dzen.ru/?yredirect=true"))
+        with allure.step(f"Дождаться, что URL нового окна - Яндекс.Дзен ({YANDEX_DZEN_URL})"):
+            url_changed = main_page.wait_for_url_to_be(YANDEX_DZEN_URL, timeout=5)
+            assert url_changed, f"URL не стал равным {YANDEX_DZEN_URL} в течение ожидаемого времени"
