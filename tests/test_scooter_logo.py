@@ -22,8 +22,11 @@ class TestScooterLogo:
             main_page.click_scooter_logo()
 
         with allure.step("Проверить, что вернулись на главную страницу"):
-            current_url = driver.current_url.rstrip('/')
-            expected_url = main_page.base_url.rstrip('/')
+            current_url = main_page.get_current_url()
+            expected_url = main_page.base_url 
+    
+            normalized_current = current_url.rstrip('/')
+            normalized_expected = expected_url.rstrip('/')
 
-            assert current_url == expected_url, \
-                f"После нажатия на логотип Самоката с другой страницы ожидаемый URL: {expected_url}, но был: {current_url}"
+            assert normalized_current == normalized_expected, \
+                f"После нажатия на логотип Самоката с другой страницы ожидаемый URL: {normalized_expected}, но был: {normalized_current}"

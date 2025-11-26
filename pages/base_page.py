@@ -1,6 +1,7 @@
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from locators import COOKIE_ACCEPT_BUTTON
 import allure
@@ -86,3 +87,63 @@ class BasePage:
             return True
         except TimeoutException:
             return False
+
+    @allure.step("Прокрутка к элементу {element}")
+    def scroll_into_view(self, element):
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+
+    @allure.step("Получение атрибута '{attribute_name}' у элемента")
+    def get_attribute(self, element, attribute_name):
+        return element.get_attribute(attribute_name)
+
+    @allure.step("Поиск элемента {locator} внутри родительского элемента {parent_element}")
+    def find_element_within(self, parent_element, locator):
+        return parent_element.find_element(*locator)
+
+    @allure.step("Поиск нескольких элементов {locator} внутри родительского элемента {parent_element}")
+    def find_elements_within(self, parent_element, locator):
+        return parent_element.find_elements(*locator)
+
+    @allure.step("Получение текущего URL")
+    def get_current_url(self):
+        return self.driver.current_url
+
+    @allure.step("Клик по элементу {element}")
+    def click_on_element(self, element):
+        element.click()
+
+    @allure.step("Ожидание, что элемент {element} кликабелен")
+    def wait_for_element_to_be_clickable(self, element, timeout=10):
+        try:
+            wait = WebDriverWait(self.driver, timeout)
+            wait.until(EC.element_to_be_clickable(element))
+        except TimeoutException:
+            allure.attach(self.driver.get_screenshot_as_png(), name="WaitForElementToBeClickableTimeout", attachment_type=allure.attachment_type.PNG)
+            raise
+
+    @allure.step("Ожидание, что элемент {element} видим")
+    def wait_for_element_to_be_visible(self, element, timeout=10):
+        try:
+            wait = WebDriverWait(self.driver, timeout)
+            wait.until(EC.visibility_of(element))
+        except TimeoutException:
+            allure.attach(self.driver.get_screenshot_as_png(), name="WaitForElementToBeVisibleTimeout", attachment_type=allure.attachment_type.PNG)
+            raise
+
+    @allure.step("Ожидание видимости элемента по локатору {locator}")
+    def wait_for_locator_to_be_visible(self, locator, timeout=10):
+        try:
+            wait = WebDriverWait(self.driver, timeout)
+            wait.until(EC.visibility_of_element_located(locator))
+        except TimeoutException:
+            allure.attach(self.driver.get_screenshot_as_png(), name="WaitForLocatorVisibleTimeout", attachment_type=allure.attachment_type.PNG)
+            raise
+
+    @allure.step("Ожидание присутствия элемента в DOM по локатору {locator}")
+    def wait_for_locator_to_be_present(self, locator, timeout=10):
+        try:
+            wait = WebDriverWait(self.driver, timeout)
+            wait.until(EC.presence_of_element_located(locator))
+        except TimeoutException:
+            allure.attach(self.driver.get_screenshot_as_png(), name="WaitForLocatorPresentTimeout", attachment_type=allure.attachment_type.PNG)
+            raise
